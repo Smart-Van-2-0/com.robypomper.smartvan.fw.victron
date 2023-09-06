@@ -70,7 +70,7 @@ def _cli_args():
     group01.add_argument('--speed', type=int, default=DEF_SERIAL_SPEED,
                          help='Serial port speed')
     group01.add_argument('--simulate', default=False, action="store_true", required=False,
-                         help='Serial port speed')
+                         help='Simulate a VEDevice with id \'0xA060\'')
 
     group02 = parser.add_argument_group()
     group02.add_argument('--dbus-name', default=DEF_DBUS_NAME,
@@ -244,7 +244,7 @@ def main(port, speed, dbus_name, obj_path=None, dbus_iface=None, simulate_dev=Fa
     ve_dev = _init_ve_device(port, speed, True, simulate_dev)
 
     # Init DBus Object
-    obj_path = obj_path if obj_path is not None else ve_dev.device_type_code
+    obj_path = obj_path if obj_path is not None else "/" + ve_dev.device_type_code
     pid = ve_dev.device_pid
     dbus_obj = _init_dbus_object(dbus_name, obj_path, dbus_iface, pid)
 

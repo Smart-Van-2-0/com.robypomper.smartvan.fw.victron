@@ -193,10 +193,10 @@ class VEDeviceSimulator(VEDevice):
         self._data = {
             'FW': '161',
             'SER#': 'HQ221234567',
-            'V': self.regenerateValue(self._data['I'], 200),
+            'V': self.regenerateValue(self._data['V'], 200),
             'I': self.regenerateValue(self._data['I'], 200),
-            'VPV': self.regenerateValue(self._data['I'], 200),
-            'PPV': self.regenerateValue(self._data['I'], 5),
+            'VPV': self.regenerateValue(self._data['VPV'], 200),
+            'PPV': self.regenerateValue(self._data['PPV'], 5),
             'CS': '0',
             'MPPT': '0',
             'OR': '0x00000001',
