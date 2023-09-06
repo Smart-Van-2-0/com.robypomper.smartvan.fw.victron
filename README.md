@@ -6,7 +6,7 @@ This repository is part of the [Smart Van Project](https://smartvan.johnosprojec
 
 **FW Name:** FW Victron<br />
 **FW Group:** com.robypomper.smartvan.fw.victron<br />
-**FW Version:** 1.0.0
+**FW Version:** 1.0.1-DEV
 
 [CHANGELOG](CHANGELOG.md) | [TODOs](TODOs.md) | [LICENCE](LICENCE.md)
 
