@@ -25,6 +25,8 @@ DEF_SERIAL_SPEED = 19200
 DEF_DBUS_NAME = "com.victron"
 """ Value to use as default DBus object path """
 DEF_DBUS_OBJ_PATH = None
+""" Value to use as default DBus object interface """
+DEF_DBUS_IFACE = None
 """ Directory name where store log files """
 LOGGER_FOLDER = "logs"
 """ Log level for file messages """
@@ -75,6 +77,8 @@ def _cli_args():
                          help='DBus name')
     group02.add_argument('--dbus-obj-path', default=DEF_DBUS_OBJ_PATH,
                          help='DBus object path (if None, the device type will be used, if empty nothing will be used)')
+    group02.add_argument('--dbus-iface', default=DEF_DBUS_IFACE,
+                         help='DBus object\'s interface')
 
     group03 = parser.add_argument_group()
     group03.add_argument("-v", "--version", action="store_true", required=False,
@@ -157,11 +161,11 @@ def _init_ve_device(port, speed, wait_connection=True, simulate_dev=False):
     return dev
 
 
-def _init_dbus_object(dbus_name, dbus_obj_path, pid):
+def _init_dbus_object(dbus_name, dbus_obj_path, dbus_iface, pid):
     """ Init and configure DBus object. """
 
     try:
-        return DBusObject(dbus_name, dbus_obj_path, pid)
+        return DBusObject(dbus_name, dbus_obj_path, dbus_iface, pid)
     except NotImplementedError as err:
         logger.fatal("Error initializing DBus object: {}".format(err))
         exit(EXIT_INIT_DBUS)
@@ -233,7 +237,7 @@ def _process_property(ve_dev, dbus_obj, property_code):
         traceback.print_exc()
 
 
-def main(port, speed, dbus_name, obj_path=None, simulate_dev=False):
+def main(port, speed, dbus_name, obj_path=None, dbus_iface=None, simulate_dev=False):
     """ Initialize a VE Device to read data and a DBus Object to share collected data. """
 
     # Init VE Device
@@ -242,7 +246,7 @@ def main(port, speed, dbus_name, obj_path=None, simulate_dev=False):
     # Init DBus Object
     obj_path = obj_path if obj_path is not None else ve_dev.device_type_code
     pid = ve_dev.device_pid
-    dbus_obj = _init_dbus_object(dbus_name, obj_path, pid)
+    dbus_obj = _init_dbus_object(dbus_name, obj_path, dbus_iface, pid)
 
     # Publish on DBus
     dbus = get_dbus()
@@ -269,5 +273,5 @@ if __name__ == '__main__':
         args.quiet = False
 
     logger = _init_logging(args.dev, args.debug, args.quiet)
-    main(args.port, args.speed, args.dbus_name, args.dbus_obj_path, args.simulate)
+    main(args.port, args.speed, args.dbus_name, args.dbus_obj_path, args.dbus_iface, args.simulate)
     exit(EXIT_SUCCESS)
