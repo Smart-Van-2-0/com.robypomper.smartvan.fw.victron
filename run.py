@@ -17,6 +17,14 @@ FW_NAME = "FW Victron"
 FW_GROUP = "com.robypomper.smartvan.fw.victron"
 """ Version of the current script """
 FW_VERSION = "1.0.1-DEV"
+""" Value to use as default serial port """
+DEF_SERIAL_PORT = "/dev/ttyUSB0"
+""" Value to use as default serial port speed """
+DEF_SERIAL_SPEED = 19200
+""" Value to use as default DBus name """
+DEF_DBUS_NAME = "com.victron"
+""" Value to use as default DBus object path """
+DEF_DBUS_OBJ_PATH = None
 """ Directory name where store log files """
 LOGGER_FOLDER = "logs"
 """ Log level for file messages """
@@ -35,7 +43,7 @@ CONN_RETRY = 5
 LOOP_SLEEP = 1
 """ Exit value on success (exit required by the user) """
 EXIT_SUCCESS = 0
-""" Exit value on initialization halted by the user because the serial device not available (exit required by the user) """
+""" Exit value on initialization halted by the user because the serial device not available (required by the user) """
 EXIT_INIT_TERMINATED = 1
 """ Exit value on DBus initialization error """
 EXIT_INIT_DBUS = 2
@@ -55,12 +63,15 @@ def _cli_args():
 
     parser = argparse.ArgumentParser(description='VE.Direct Serial to DBus bridge')
     group01 = parser.add_argument_group()
-    group01.add_argument('--port', default='/dev/ttyUSB0', help='Serial port')
-    group01.add_argument('--speed', type=int, default='19200', help='Serial port speed')
+    group01.add_argument('--port', default=DEF_SERIAL_PORT,
+                         help='Serial port')
+    group01.add_argument('--speed', type=int, default=DEF_SERIAL_SPEED,
+                         help='Serial port speed')
 
     group02 = parser.add_argument_group()
-    group02.add_argument('--dbus_name', default='com.victron', help='DBus name')
-    group02.add_argument('--obj_path', default=None,
+    group02.add_argument('--dbus-name', default=DEF_DBUS_NAME,
+                         help='DBus name')
+    group02.add_argument('--dbus-obj-path', default=DEF_DBUS_OBJ_PATH,
                          help='DBus object path (if None, the device type will be used, if empty nothing will be used)')
 
     group03 = parser.add_argument_group()
@@ -68,14 +79,17 @@ def _cli_args():
                          help="Show version and exit")
 
     group04 = parser.add_argument_group()
-    group04.add_argument("--dev", action="store_true", help="Enable development mode, increase logged messages info")
-    group04.add_argument("--debug", action="store_true", help="Set log level to debug")
-    group04.add_argument("--quiet", action="store_true", help="Set log level to error")
+    group04.add_argument("--dev", action="store_true",
+                         help="Enable development mode, increase logged messages info")
+    group04.add_argument("--debug", action="store_true",
+                         help="Set log level to debug")
+    group04.add_argument("--quiet", action="store_true",
+                         help="Set log level to error")
 
     return parser.parse_args()
 
 
-def _init_logging(dev, debug, quiet, args_str):
+def _init_logging(dev, debug, quiet):
     """ Init and configure logging system. """
 
     logger_format = LOGGER_FORMAT if not dev else LOGGER_FORMAT_DEV
@@ -115,8 +129,6 @@ def _init_logging(dev, debug, quiet, args_str):
 def _init_ve_device(port, speed, wait_connection=True):
     """ Init and configure VE Device. """
 
-    global logger
-
     logger.debug("Connecting to '{} at {}'...".format(port, speed))
     dev = VEDevice(port, speed)
 
@@ -139,11 +151,11 @@ def _init_ve_device(port, speed, wait_connection=True):
     return dev
 
 
-def _init_dbus_object(dbus_name, dbus_obj_path, dev_type):
+def _init_dbus_object(dbus_name, dbus_obj_path, pid):
     """ Init and configure DBus object. """
 
     try:
-        return DBusObject(dbus_name, dbus_obj_path, dev_type)
+        return DBusObject(dbus_name, dbus_obj_path, pid)
     except NotImplementedError as err:
         logger.fatal("Error initializing DBus object: {}".format(err))
         exit(EXIT_INIT_DBUS)
@@ -250,6 +262,6 @@ if __name__ == '__main__':
         args.debug = True
         args.quiet = False
 
-    logger = _init_logging(args.dev, args.debug, args.quiet, str(args))
-    main(args.port, args.speed, args.dbus_name, args.obj_path)
+    logger = _init_logging(args.dev, args.debug, args.quiet)
+    main(args.port, args.speed, args.dbus_name, args.dbus_obj_path)
     exit(EXIT_SUCCESS)
