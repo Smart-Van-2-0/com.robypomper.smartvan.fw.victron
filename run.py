@@ -6,7 +6,7 @@ import argparse
 from datetime import datetime
 import time
 
-from fw_victron.ve_device import VEDevice
+from fw_victron.ve_device import VEDevice, VEDeviceSimulator
 from fw_victron.dbus_obj import DBusObject
 from fw_victron.mappings import PROPS_CODES
 from fw_victron.dbus_daemon import *
@@ -67,6 +67,8 @@ def _cli_args():
                          help='Serial port')
     group01.add_argument('--speed', type=int, default=DEF_SERIAL_SPEED,
                          help='Serial port speed')
+    group01.add_argument('--simulate', default=False, action="store_true", required=False,
+                         help='Serial port speed')
 
     group02 = parser.add_argument_group()
     group02.add_argument('--dbus-name', default=DEF_DBUS_NAME,
@@ -126,8 +128,12 @@ def _init_logging(dev, debug, quiet):
     return root_logger
 
 
-def _init_ve_device(port, speed, wait_connection=True):
+def _init_ve_device(port, speed, wait_connection=True, simulate_dev=False):
     """ Init and configure VE Device. """
+
+    if simulate_dev:
+        logger.debug("Simulate device '{} at {}'...".format(port, speed))
+        return VEDeviceSimulator(port, speed)
 
     logger.debug("Connecting to '{} at {}'...".format(port, speed))
     dev = VEDevice(port, speed)
@@ -227,11 +233,11 @@ def _process_property(ve_dev, dbus_obj, property_code):
         traceback.print_exc()
 
 
-def main(port, speed, dbus_name, obj_path=None):
+def main(port, speed, dbus_name, obj_path=None, simulate_dev=False):
     """ Initialize a VE Device to read data and a DBus Object to share collected data. """
 
     # Init VE Device
-    ve_dev = _init_ve_device(port, speed)
+    ve_dev = _init_ve_device(port, speed, True, simulate_dev)
 
     # Init DBus Object
     obj_path = obj_path if obj_path is not None else ve_dev.device_type_code
@@ -263,5 +269,5 @@ if __name__ == '__main__':
         args.quiet = False
 
     logger = _init_logging(args.dev, args.debug, args.quiet)
-    main(args.port, args.speed, args.dbus_name, args.dbus_obj_path)
+    main(args.port, args.speed, args.dbus_name, args.dbus_obj_path, args.simulate)
     exit(EXIT_SUCCESS)

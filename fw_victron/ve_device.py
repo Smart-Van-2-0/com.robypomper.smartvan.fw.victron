@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 
-import enum
-
+import random
 import serial
+
 from .mappings import *
 
 
@@ -12,20 +12,6 @@ class VEDirectException(Exception):
 
 class InvalidChecksumException(VEDirectException):
     pass
-
-
-class MPPTState(enum.Enum):
-    Off = 0
-    Limited = 1
-    Active = 2
-
-
-def mA(val: str) -> float:
-    return float(val) / 1000
-
-
-def mV(val: str) -> float:
-    return float(val) / 1000
 
 
 def check_frame_checksum(frames: list[bytes]):
@@ -41,7 +27,7 @@ def check_frame_checksum(frames: list[bytes]):
 
 class VEDevice:
 
-    def __init__(self, device: str = '/dev/ttyUSB0', speed: int = 19200):
+    def __init__(self, device: str = '/dev/ttyUSB0', speed: int = 19200, auto_refresh=True):
         self.device = device
         self.speed = speed
         self._data = {}
@@ -54,7 +40,8 @@ class VEDevice:
         self.cached_type = None
         self.cached_serial = None
 
-        self.refresh()
+        if auto_refresh:
+            self.refresh()
 
     def refresh(self, reset_data=False) -> bool:
         """
@@ -78,7 +65,7 @@ class VEDevice:
 
     @property
     def is_connected(self) -> bool:
-        """ Returns True if at last refresh attampt the serial device was available. """
+        """ Returns True if at last refresh attempt the serial device was available. """
         return self._is_connected
 
     @property
@@ -174,6 +161,63 @@ class VEDevice:
     @property
     def latest_data(self) -> dict:
         return self._data
+
+
+class VEDeviceSimulator(VEDevice):
+
+    def __init__(self, device: str = '/dev/ttyUSB0', speed: int = 19200):
+        super().__init__(device, speed, False)
+        self._data = {
+            'FW': '161',
+            'SER#': 'HQ221234567',
+            'V': "12000.0",
+            'I': '5000.0',
+            'VPV': '15000',
+            'PPV': '50',
+            'CS': '0',
+            'MPPT': '0',
+            'OR': '0x00000001',
+            'ERR': '0',
+            'LOAD': "ON" if random.randint(0, 1) else "OFF",
+            'IL': '0',
+            'H19': '230',
+            'H20': '0',
+            'H21': '0',
+            'H22': '0',
+            'H23': '0',
+            'HSDS': '25',
+            'PID': '0xA060'
+        }
+
+    def refresh(self, reset_data=False) -> bool:
+        self._data = {
+            'FW': '161',
+            'SER#': 'HQ221234567',
+            'V': self.regenerateValue(self._data['I'], 200),
+            'I': self.regenerateValue(self._data['I'], 200),
+            'VPV': self.regenerateValue(self._data['I'], 200),
+            'PPV': self.regenerateValue(self._data['I'], 5),
+            'CS': '0',
+            'MPPT': '0',
+            'OR': '0x00000001',
+            'ERR': '0',
+            'LOAD': "ON" if random.randint(0, 1) else "OFF",
+            'IL': '0',
+            'H19': '230',
+            'H20': '0',
+            'H21': '0',
+            'H22': '0',
+            'H23': '0',
+            'HSDS': '25',
+            'PID': '0xA060'
+        }
+        return True
+
+    @staticmethod
+    def regenerateValue(str_value, range_value):
+        prev_value = props_parser_float(str_value)
+        inc = random.randint(0, range_value) - (range_value / 2)
+        return prev_value + inc
 
 
 if __name__ == '__main__':
