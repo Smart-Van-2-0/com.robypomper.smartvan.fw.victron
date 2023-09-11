@@ -1,11 +1,11 @@
-# TODOs
+# FW Victron - TODOs
 
 [README](README.md) | [CHANGELOG](CHANGELOG.md) | [TODOs](TODOs.md) | [LICENCE](LICENCE.md)
 
 
 ## VE:Direct
 
-* Check how to configure a VE.Direct device via serial
+* Check how to configure a VE.Direct device via serial, if possible
 
 
 ## DBus support
