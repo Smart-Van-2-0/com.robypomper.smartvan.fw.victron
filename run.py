@@ -5,6 +5,7 @@ import sys
 import argparse
 from datetime import datetime
 import time
+import signal
 
 from fw_victron.ve_device import VEDevice, VEDeviceSimulator
 from fw_victron.dbus_obj import DBusObject
@@ -52,6 +53,7 @@ EXIT_INIT_DBUS = 2
 
 # default logger, used if _setup_logging() was not called
 logger = logging.getLogger()
+must_shutdown=False
 
 
 def _full_version():
@@ -135,6 +137,8 @@ def _init_logging(dev, debug, quiet):
 def _init_ve_device(port, speed, wait_connection=True, simulate_dev=False):
     """ Init and configure VE Device. """
 
+    global must_shutdown
+
     if simulate_dev:
         logger.debug("Simulate device '{} at {}'...".format(port, speed))
         return VEDeviceSimulator(port, speed)
@@ -145,7 +149,8 @@ def _init_ve_device(port, speed, wait_connection=True, simulate_dev=False):
     if not dev.is_connected and wait_connection:
         logger.warning("Port '{}' not available, retry in {} seconds. Press (Ctrl+C) to exit.".format(port, CONN_RETRY))
         try:
-            while not dev.is_connected:
+            must_shutdown=False
+            while not dev.is_connected and not must_shutdown:
                 time.sleep(CONN_RETRY)
                 dev.refresh()
                 if not dev.is_connected:
@@ -173,6 +178,8 @@ def _init_dbus_object(dbus_name, dbus_obj_path, dbus_iface, pid):
 
 def _main_loop(ve_dev, dbus_obj):
     """ Current script's main loop. """
+
+    global must_shutdown
 
     # Main thread loop
     logger.info("Start {} Main Loop. Press (Ctrl+C) to quit.".format(FW_NAME))
@@ -237,25 +244,65 @@ def _process_property(ve_dev, dbus_obj, property_code):
         traceback.print_exc()
 
 
+def _register_kill_signals():
+    signal.signal(signal.SIGINT, __handle_kill_signals)
+    signal.signal(signal.SIGTERM, __handle_kill_signals)
+
+
+def __handle_kill_signals(signo, _stack_frame):
+    global must_shutdown
+
+    logger.info("Received `{}` signal. Shutting down...".format(signo))
+    # SIGINT    2   <= Ctrl+C
+    # SIGTERM   15  <= kill PID
+    must_shutdown = True
+
+
 def main(port, speed, dbus_name, obj_path=None, dbus_iface=None, simulate_dev=False):
     """ Initialize a VE Device to read data and a DBus Object to share collected data. """
+    _register_kill_signals()
 
     # Init VE Device
-    ve_dev = _init_ve_device(port, speed, True, simulate_dev)
+    try:
+        ve_dev = _init_ve_device(port, speed, True, simulate_dev)
+        if not ve_dev.is_connected and must_shutdown:
+            exit(0)
+    except Exception as err:
+        logger.warning("Error on initializing VE.Direct Device: " + str(err))
+        exit(-1)
 
     # Init DBus Object
-    obj_path = obj_path if obj_path is not None else "/" + ve_dev.device_type_code
-    pid = ve_dev.device_pid
-    dbus_obj = _init_dbus_object(dbus_name, obj_path, dbus_iface, pid)
+    try:
+        obj_path = obj_path if obj_path is not None else "/" + ve_dev.device_type_code
+        pid = ve_dev.device_pid
+        dbus_obj = _init_dbus_object(dbus_name, obj_path, dbus_iface, pid)
+    except Exception as err:
+        logger.warning("Error on initializing DBus Object: " + str(err))
+        exit(-1)
 
     # Publish on DBus
-    dbus = get_dbus()
-    start_dbus_thread()
-    dbus_obj.publish(dbus)
+    try:
+        dbus = get_dbus()
+        start_dbus_thread()
+        dbus_obj.publish(dbus)
+    except Exception as err:
+        logger.warning("Error on publish DBus Object: " + str(err))
+        try:
+            stop_dbus_thread()
+        except:
+            pass
+        exit(-1)
 
-    _main_loop(ve_dev, dbus_obj)
+    try:
+        _main_loop(ve_dev, dbus_obj)
+    except Exception as err:
+        logger.warning("Error on main thread: " + str(err))
+        exit(-1)
 
-    stop_dbus_thread()
+    try:
+        stop_dbus_thread()
+    except Exception as err:
+        logger.warning("Error on stopping DBus threads: " + str(err))
 
 
 if __name__ == '__main__':
