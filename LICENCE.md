@@ -1,6 +1,6 @@
-# LICENCE
+# FW Victron - LICENCE
 
-[README](README.md) | [CHANGELOG](CHANGELOG.md) | [TODOs](TODOs.md)
+[README](README.md) | [CHANGELOG](CHANGELOG.md) | [TODOs](TODOs.md) | [LICENCE](LICENCE.md)
 
 
 ---
