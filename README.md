@@ -6,9 +6,9 @@ This repository is part of the [Smart Van Project](https://smartvan.johnosprojec
 
 **FW Name:** FW Victron<br />
 **FW Group:** com.robypomper.smartvan.fw.victron<br />
-**FW Version:** 1.0.0
+**FW Version:** 1.0.1
 
-[CHANGELOG](CHANGELOG.md) | [TODOs](TODOs.md) | [LICENCE](LICENCE.md)
+[README](README.md) | [CHANGELOG](CHANGELOG.md) | [TODOs](TODOs.md) | [LICENCE](LICENCE.md)
 
 Once ran, this script **reads data from the serial specified port then notify
 the DBus with updated values**. The DBus service and his properties depends on
@@ -36,7 +36,16 @@ Now, you are ready to run the script with the command:
 
 ```commandline
 $ python run.py
+
+or specify DBus params
+
+$ python run.py  --dbus-name com.custom.bus --dbus-obj-path /custom/path --dbus-iface com.custom.IFace
 ```
+
+Defaults DBus params are:
+* DBus Name: `com.victron`
+* DBus Obj Path: DEV_TYPE_* (eg: `smartsolar_mppt`)
+* DBus Interface: DEV_IFACE_* (eg: `com.victron.SmartSolarMPPT`)
 
 ### Script's arguments
 
@@ -46,8 +55,10 @@ The `run.py` script accept following arguments:
 * `-v`, `--version`: show version and exit
 * `--port PORT`: serial port
 * `--speed SPEED`: serial port speed
-* `--dbus_name DBUS_NAME`: DBus name
-* `--obj_path OBJ_PATH`: DBus object path (if None, the device type will be used, if empty nothing will be used)
+* `--simulate`: Simulate a VEDevice with id `0xA060`
+* `--dbus-name DBUS_NAME`: DBus name
+* `--dbus-obj-path DBUS_OBJ_PATH`: DBus object path (if None, the device type will be used, if empty nothing will be used)
+* `--dbus-iface DBUS_IFACE`: DBus interface (if None, the device interface will be used, if empty nothing will be used)
 * `--dev`: enable development mode, increase logged messages info
 * `--debug`: Set log level to debug
 * `--quiet`: Set log level to errorexecuted and

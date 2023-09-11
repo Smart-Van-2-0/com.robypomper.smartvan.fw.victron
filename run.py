@@ -5,8 +5,9 @@ import sys
 import argparse
 from datetime import datetime
 import time
+import signal
 
-from fw_victron.ve_device import VEDevice
+from fw_victron.ve_device import VEDevice, VEDeviceSimulator
 from fw_victron.dbus_obj import DBusObject
 from fw_victron.mappings import PROPS_CODES
 from fw_victron.dbus_daemon import *
@@ -16,7 +17,17 @@ FW_NAME = "FW Victron"
 """ Group of the current script """
 FW_GROUP = "com.robypomper.smartvan.fw.victron"
 """ Version of the current script """
-FW_VERSION = "1.0.0"
+FW_VERSION = "1.0.1-DEV"
+""" Value to use as default serial port """
+DEF_SERIAL_PORT = "/dev/ttyUSB0"
+""" Value to use as default serial port speed """
+DEF_SERIAL_SPEED = 19200
+""" Value to use as default DBus name """
+DEF_DBUS_NAME = "com.victron"
+""" Value to use as default DBus object path """
+DEF_DBUS_OBJ_PATH = None
+""" Value to use as default DBus object interface """
+DEF_DBUS_IFACE = None
 """ Directory name where store log files """
 LOGGER_FOLDER = "logs"
 """ Log level for file messages """
@@ -35,13 +46,14 @@ CONN_RETRY = 5
 LOOP_SLEEP = 1
 """ Exit value on success (exit required by the user) """
 EXIT_SUCCESS = 0
-""" Exit value on initialization halted by the user because the serial device not available (exit required by the user) """
+""" Exit value on initialization halted by the user because the serial device not available (required by the user) """
 EXIT_INIT_TERMINATED = 1
 """ Exit value on DBus initialization error """
 EXIT_INIT_DBUS = 2
 
 # default logger, used if _setup_logging() was not called
 logger = logging.getLogger()
+must_shutdown=False
 
 
 def _full_version():
@@ -55,27 +67,37 @@ def _cli_args():
 
     parser = argparse.ArgumentParser(description='VE.Direct Serial to DBus bridge')
     group01 = parser.add_argument_group()
-    group01.add_argument('--port', default='/dev/ttyUSB0', help='Serial port')
-    group01.add_argument('--speed', type=int, default='19200', help='Serial port speed')
+    group01.add_argument('--port', default=DEF_SERIAL_PORT,
+                         help='Serial port')
+    group01.add_argument('--speed', type=int, default=DEF_SERIAL_SPEED,
+                         help='Serial port speed')
+    group01.add_argument('--simulate', default=False, action="store_true", required=False,
+                         help='Simulate a VEDevice with id \'0xA060\'')
 
     group02 = parser.add_argument_group()
-    group02.add_argument('--dbus_name', default='com.victron', help='DBus name')
-    group02.add_argument('--obj_path', default=None,
+    group02.add_argument('--dbus-name', default=DEF_DBUS_NAME,
+                         help='DBus name')
+    group02.add_argument('--dbus-obj-path', default=DEF_DBUS_OBJ_PATH,
                          help='DBus object path (if None, the device type will be used, if empty nothing will be used)')
+    group02.add_argument('--dbus-iface', default=DEF_DBUS_IFACE,
+                         help='DBus object\'s interface')
 
     group03 = parser.add_argument_group()
     group03.add_argument("-v", "--version", action="store_true", required=False,
                          help="Show version and exit")
 
     group04 = parser.add_argument_group()
-    group04.add_argument("--dev", action="store_true", help="Enable development mode, increase logged messages info")
-    group04.add_argument("--debug", action="store_true", help="Set log level to debug")
-    group04.add_argument("--quiet", action="store_true", help="Set log level to error")
+    group04.add_argument("--dev", action="store_true",
+                         help="Enable development mode, increase logged messages info")
+    group04.add_argument("--debug", action="store_true",
+                         help="Set log level to debug")
+    group04.add_argument("--quiet", action="store_true",
+                         help="Set log level to error")
 
     return parser.parse_args()
 
 
-def _init_logging(dev, debug, quiet, args_str):
+def _init_logging(dev, debug, quiet):
     """ Init and configure logging system. """
 
     logger_format = LOGGER_FORMAT if not dev else LOGGER_FORMAT_DEV
@@ -112,10 +134,14 @@ def _init_logging(dev, debug, quiet, args_str):
     return root_logger
 
 
-def _init_ve_device(port, speed, wait_connection=True):
+def _init_ve_device(port, speed, wait_connection=True, simulate_dev=False):
     """ Init and configure VE Device. """
 
-    global logger
+    global must_shutdown
+
+    if simulate_dev:
+        logger.debug("Simulate device '{} at {}'...".format(port, speed))
+        return VEDeviceSimulator(port, speed)
 
     logger.debug("Connecting to '{} at {}'...".format(port, speed))
     dev = VEDevice(port, speed)
@@ -123,7 +149,8 @@ def _init_ve_device(port, speed, wait_connection=True):
     if not dev.is_connected and wait_connection:
         logger.warning("Port '{}' not available, retry in {} seconds. Press (Ctrl+C) to exit.".format(port, CONN_RETRY))
         try:
-            while not dev.is_connected:
+            must_shutdown=False
+            while not dev.is_connected and not must_shutdown:
                 time.sleep(CONN_RETRY)
                 dev.refresh()
                 if not dev.is_connected:
@@ -139,11 +166,11 @@ def _init_ve_device(port, speed, wait_connection=True):
     return dev
 
 
-def _init_dbus_object(dbus_name, dbus_obj_path, dev_type):
+def _init_dbus_object(dbus_name, dbus_obj_path, dbus_iface, pid):
     """ Init and configure DBus object. """
 
     try:
-        return DBusObject(dbus_name, dbus_obj_path, dev_type)
+        return DBusObject(dbus_name, dbus_obj_path, dbus_iface, pid)
     except NotImplementedError as err:
         logger.fatal("Error initializing DBus object: {}".format(err))
         exit(EXIT_INIT_DBUS)
@@ -151,6 +178,8 @@ def _init_dbus_object(dbus_name, dbus_obj_path, dev_type):
 
 def _main_loop(ve_dev, dbus_obj):
     """ Current script's main loop. """
+
+    global must_shutdown
 
     # Main thread loop
     logger.info("Start {} Main Loop. Press (Ctrl+C) to quit.".format(FW_NAME))
@@ -215,25 +244,65 @@ def _process_property(ve_dev, dbus_obj, property_code):
         traceback.print_exc()
 
 
-def main(port, speed, dbus_name, obj_path=None):
+def _register_kill_signals():
+    signal.signal(signal.SIGINT, __handle_kill_signals)
+    signal.signal(signal.SIGTERM, __handle_kill_signals)
+
+
+def __handle_kill_signals(signo, _stack_frame):
+    global must_shutdown
+
+    logger.info("Received `{}` signal. Shutting down...".format(signo))
+    # SIGINT    2   <= Ctrl+C
+    # SIGTERM   15  <= kill PID
+    must_shutdown = True
+
+
+def main(port, speed, dbus_name, obj_path=None, dbus_iface=None, simulate_dev=False):
     """ Initialize a VE Device to read data and a DBus Object to share collected data. """
+    _register_kill_signals()
 
     # Init VE Device
-    ve_dev = _init_ve_device(port, speed)
+    try:
+        ve_dev = _init_ve_device(port, speed, True, simulate_dev)
+        if not ve_dev.is_connected and must_shutdown:
+            exit(0)
+    except Exception as err:
+        logger.warning("Error on initializing VE.Direct Device: " + str(err))
+        exit(-1)
 
     # Init DBus Object
-    obj_path = obj_path if obj_path is not None else ve_dev.device_type_code
-    pid = ve_dev.device_pid
-    dbus_obj = _init_dbus_object(dbus_name, obj_path, pid)
+    try:
+        obj_path = obj_path if obj_path is not None else "/" + ve_dev.device_type_code
+        pid = ve_dev.device_pid
+        dbus_obj = _init_dbus_object(dbus_name, obj_path, dbus_iface, pid)
+    except Exception as err:
+        logger.warning("Error on initializing DBus Object: " + str(err))
+        exit(-1)
 
     # Publish on DBus
-    dbus = get_dbus()
-    start_dbus_thread()
-    dbus_obj.publish(dbus)
+    try:
+        dbus = get_dbus()
+        start_dbus_thread()
+        dbus_obj.publish(dbus)
+    except Exception as err:
+        logger.warning("Error on publish DBus Object: " + str(err))
+        try:
+            stop_dbus_thread()
+        except:
+            pass
+        exit(-1)
 
-    _main_loop(ve_dev, dbus_obj)
+    try:
+        _main_loop(ve_dev, dbus_obj)
+    except Exception as err:
+        logger.warning("Error on main thread: " + str(err))
+        exit(-1)
 
-    stop_dbus_thread()
+    try:
+        stop_dbus_thread()
+    except Exception as err:
+        logger.warning("Error on stopping DBus threads: " + str(err))
 
 
 if __name__ == '__main__':
@@ -250,6 +319,6 @@ if __name__ == '__main__':
         args.debug = True
         args.quiet = False
 
-    logger = _init_logging(args.dev, args.debug, args.quiet, str(args))
-    main(args.port, args.speed, args.dbus_name, args.obj_path)
+    logger = _init_logging(args.dev, args.debug, args.quiet)
+    main(args.port, args.speed, args.dbus_name, args.dbus_obj_path, args.dbus_iface, args.simulate)
     exit(EXIT_SUCCESS)

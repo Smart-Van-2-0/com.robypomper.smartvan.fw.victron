@@ -1,6 +1,15 @@
-# Changelog
+# FW Victron - Changelog
 
-[README](README.md) | [TODOs](TODOs.md) | [LICENCE](LICENCE.md)
+[README](README.md) | [CHANGELOG](CHANGELOG.md) | [TODOs](TODOs.md) | [LICENCE](LICENCE.md)
+
+
+## Version 1.0.1
+
+* Refactored cmdLine args replacing `_` char with `-`
+* Added VEDevice simulator available with the cmdLine arg `--simulate`
+* Improved DBus support introducing DBus object interface support
+* Fixed VEDeviceSimulator data generation
+* Add signal INT and TERM handler into `run.py`
 
 
 ## Version 1.0.0
