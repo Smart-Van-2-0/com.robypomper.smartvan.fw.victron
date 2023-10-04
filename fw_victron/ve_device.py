@@ -170,7 +170,7 @@ class VEDeviceSimulator(VEDevice):
         self._data = {
             'FW': '',
             'SER#': '',
-            'V': "0.0",
+            'V': "12000.0",
             'I': '0.0',
             'VPV': '0',
             'PPV': '0',
@@ -193,7 +193,7 @@ class VEDeviceSimulator(VEDevice):
         self._data = {
             'FW': '161',
             'SER#': 'HQ221234567',
-            'V': max(min(self.regenerateValue(self._data['V'], 200), 15000), 0),
+            'V': max(min(self.regenerateValue(self._data['V'], 200), 15000), 10000),
             'I': max(min(self.regenerateValue(self._data['I'], 200), 4000), 0),
             'VPV': max(min(self.regenerateValue(self._data['VPV'], 200), 15000), 0),
             'PPV': max(min(self.regenerateValue(self._data['PPV'], 5), 200), 0),
@@ -202,7 +202,7 @@ class VEDeviceSimulator(VEDevice):
             'OR': '0x00000001',
             'ERR': '0',
             'LOAD': "ON" if random.randint(0, 1) else "OFF",
-            'IL': '0',
+            'IL': max(min(self.regenerateValue(self._data['IL'], 200), 4000), 0),
             'H19': '230',
             'H20': '0',
             'H21': '0',
