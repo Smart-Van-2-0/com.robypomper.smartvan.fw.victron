@@ -42,4 +42,7 @@ class DBusObject:
         logger.debug("Object '{}' property update '{}.{} = {}'."
                      .format(self.dbus_obj_path, self.dbus_iface, property_name, value))
         self._cached_properties[property_name] = value
-        self.PropertiesChanged(self.dbus_iface, {property_name: value}, [])
+        try:
+            self.PropertiesChanged(self.dbus_iface, {property_name: value}, [])
+        except KeyError as err:
+            raise NameError("Property {} not registered on current DBUs iface".format(err)) from err
