@@ -10,6 +10,7 @@ import signal
 from fw_victron.ve_device import VEDevice, VEDeviceSimulator
 from fw_victron.dbus_obj import DBusObject
 from fw_victron.mappings import PROPS_CODES
+from fw_victron.calculated import CALCULATED_PROPS
 from fw_victron.dbus_daemon import *
 
 """ Name of the current script """
@@ -218,7 +219,10 @@ def _main_loop(ve_dev, dbus_obj):
 
 
 def _process_property(ve_dev, dbus_obj, property_code):
-    """ Get and parse  VE Device's property and notify his update on DBus. """
+    """
+    Get and parse the VE Device's property and, if it used to elaborate a
+    calculated value, the calculated value will be refreshed.
+    """
 
     property_value_raw = ve_dev.latest_data[property_code]
     try:
@@ -240,6 +244,7 @@ def _process_property(ve_dev, dbus_obj, property_code):
             'time': datetime.now()
         }
         dbus_obj.update_property(property_name, property_value)
+        _update_property_derivatives(dbus_obj, property_name, property_value)
 
     except ValueError:
         logger.warning("Property '{}={}' raw value malformed, skipped.".format(property_name, property_value_raw))
@@ -255,6 +260,42 @@ def _process_property(ve_dev, dbus_obj, property_code):
         import traceback
         traceback.print_exc()
 
+
+def _update_property_derivatives(dbus_obj, property_name, property_value):
+    """ Get and parse the VE Device's property and notify his update on DBus. """
+
+    for c_property_name in CALCULATED_PROPS:
+        try:
+            if property_name in CALCULATED_PROPS[c_property_name]['depends_on']:
+                c_property_value = CALCULATED_PROPS[c_property_name]['calculator'](properties_cache)
+                if c_property_value is None:
+                    logger.debug("No value calculated for '{}', skipped".format(c_property_name))
+                    continue
+
+                # Check cached value
+                if c_property_name in properties_cache \
+                        and properties_cache[c_property_name]['value'] == c_property_value \
+                        and properties_cache[c_property_name]['time'] > datetime.now() - CACHE_TIME_TO_RESET:
+                    logger.debug("Value cached for '{}' <{}>".format(c_property_name, c_property_value))
+                    continue
+
+                # Update property's value
+                properties_cache[c_property_name] = {
+                    'name': c_property_name,
+                    'value': c_property_value,
+                    'time': datetime.now()
+                }
+                # Update property
+                dbus_obj.update_property(c_property_name, c_property_value)
+                _update_property_derivatives(dbus_obj, c_property_name, c_property_value)
+
+        except Exception as err:
+            logger.warning("Error calculating '{}' property: {}".format(c_property_name, err))
+            # uncomment for calculators development
+            #print("###################################")
+            #import traceback
+            #traceback.print_exc()
+            #print("###################################")
 
 def _register_kill_signals():
     signal.signal(signal.SIGINT, __handle_kill_signals)
