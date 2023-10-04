@@ -3,7 +3,7 @@
 import os
 import sys
 import argparse
-from datetime import datetime
+from datetime import datetime, timedelta
 import time
 import signal
 
@@ -28,6 +28,8 @@ DEF_DBUS_NAME = "com.victron"
 DEF_DBUS_OBJ_PATH = None
 """ Value to use as default DBus object interface """
 DEF_DBUS_IFACE = None
+""" Maximum time a property can be stored on the cache before sending his value again. """
+CACHE_TIME_TO_RESET = timedelta(hours=0, minutes=1, seconds=0)
 """ Directory name where store log files """
 LOGGER_FOLDER = "logs"
 """ Log level for file messages """
@@ -54,6 +56,7 @@ EXIT_INIT_DBUS = 2
 # default logger, used if _setup_logging() was not called
 logger = logging.getLogger()
 must_shutdown=False
+properties_cache={}
 
 
 def _full_version():
@@ -227,6 +230,15 @@ def _process_property(ve_dev, dbus_obj, property_code):
 
     try:
         property_value = property_parser(property_value_raw)
+        if property_name in properties_cache \
+                and properties_cache[property_name]['value'] == property_value \
+                and properties_cache[property_name]['time'] > datetime.now() - CACHE_TIME_TO_RESET:
+            return
+        properties_cache[property_name] = {
+            'name': property_name,
+            'value': property_value,
+            'time': datetime.now()
+        }
         dbus_obj.update_property(property_name, property_value)
 
     except ValueError:
