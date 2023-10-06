@@ -35,7 +35,7 @@ class VEDevice:
 
         self._is_connected = False
         if os.path.exists(device):
-            with serial.Serial(self.device, self.speed, timeout=1) as s:
+            with serial.Serial(self.device, self.speed, timeout=1) as _s:
                 self._is_connected = True
         self._is_reading = False
         self._must_terminate = False

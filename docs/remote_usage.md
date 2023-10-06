@@ -36,7 +36,7 @@ machine:
 2. Install requirements (only once)
 
   ```shell
-  (rpi)$ sudo apt-get install python3 libcairo2-dev libgirepository1.0-dev dbus-x11
+  (rpi)$ sudo apt-get install python3 python3-pip libcairo2-dev libgirepository1.0-dev dbus-x11
   ```
 
 3. Install python's requirements (only once)
@@ -45,7 +45,7 @@ machine:
   (rpi)$ cd dev/fw_victron
   (rpi)$ python -m venv venv           # Optional: only for venv support
   (rpi)$ source venv/bin/activate      # Optional: only for venv support
-  (rpi-venv)$ pip install -R requirements.txt
+  (rpi-venv)$ pip install -r requirements.txt
   ```
 
 ## Run on remote machine
