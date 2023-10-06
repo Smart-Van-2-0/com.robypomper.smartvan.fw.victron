@@ -1,9 +1,10 @@
 #!/usr/bin/python3
 
+import os
 import random
 import serial
 
-from .mappings import *
+from fw_victron.mappings import *
 
 
 class VEDirectException(Exception):
@@ -33,7 +34,11 @@ class VEDevice:
         self._data = {}
 
         self._is_connected = False
+        if os.path.exists(device):
+            with serial.Serial(self.device, self.speed, timeout=1) as s:
+                self._is_connected = True
         self._is_reading = False
+        self._must_terminate = False
 
         self.cached_pid = None
         self.cached_model = None
@@ -50,8 +55,10 @@ class VEDevice:
         return: True if it read data successfully
         """
         if self._is_reading:
-            while self._is_reading:
+            while self._is_reading or self._must_terminate:
                 pass
+            if self._must_terminate:
+                return False
             return self._is_connected
 
         self._is_reading = True
@@ -73,6 +80,9 @@ class VEDevice:
         """ Returns the local device (eg: '/dev/ttyUSB0') used to connect to the serial device """
         return self._is_reading
 
+    def terminate(self):
+        self._must_terminate = True
+
     def _parse_pdu(self, frames):
         for frame in frames:
             if frame.startswith(b'Checksum'):
@@ -88,16 +98,20 @@ class VEDevice:
             with serial.Serial(self.device, self.speed, timeout=4) as s:
                 self._is_connected = True
                 # Wait for start of frame
-                while True:
+                while True and not self._must_terminate:
                     frame = s.readline()
                     if frame.startswith(b'PID'):
                         break
 
                 # slurp all frames
                 frame = b''
-                while not frame.startswith(b'PID'):
+                while not frame.startswith(b'PID') and not self._must_terminate:
                     frame = s.readline()
                     data.append(frame)
+
+                if self._must_terminate:
+                    self._is_connected = False
+
         except serial.serialutil.SerialException:
             self._is_connected = False
 
@@ -119,7 +133,7 @@ class VEDevice:
         return self.speed
 
     @property
-    def device_serial(self) -> str | None:
+    def device_serial(self) -> "str | None":
         """ Returns the device PID """
         if self.cached_serial is None:
             self.cached_serial = self._data['SER#']
@@ -127,7 +141,7 @@ class VEDevice:
         return self.cached_serial
 
     @property
-    def device_pid(self) -> str | None:
+    def device_pid(self) -> "str | None":
         """ Returns the device PID """
         if self.cached_pid is None:
             self.cached_pid = self._data['PID']
@@ -135,7 +149,7 @@ class VEDevice:
         return self.cached_pid
 
     @property
-    def device_model(self) -> str | None:
+    def device_model(self) -> "str | None":
         """ Returns the device model """
         if self.cached_model is None:
             if self.device_pid is not None:

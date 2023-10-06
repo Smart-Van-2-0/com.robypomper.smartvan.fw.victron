@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
-from .dbus_definitions import *
-from .ve_parsers import *
+from fw_victron.dbus_definitions import *
+from fw_victron.ve_parsers import *
 
 
 def dev_type_to_code(device_type) -> str:
