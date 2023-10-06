@@ -3,20 +3,22 @@
 import logging
 from pydbus.generic import signal
 
-from .mappings import *
+from fw_victron.mappings import *
+
 
 logger = logging.getLogger()
 
 
 class DBusObject:
+
     PropertiesChanged = signal()
 
-    def __init__(self, dbus_name, dbus_obj_path, dbus_iface, pid):
+    def __init__(self, dbus_name, pid, dbus_obj_path=None, dbus_iface=None, enable_cache=False):
         if pid not in PID:
-            raise NotImplementedError("Device with '{}' PID not implemented."
+            raise NotImplementedError("Device with '{}' PIS not implemented."
                                       .format(pid))
 
-        self._cached_properties = {}
+        self._cached_properties = {} if enable_cache else None
 
         self.dbus_name = dbus_name
         self.dbus_obj_path = dbus_obj_path
@@ -36,12 +38,14 @@ class DBusObject:
         dbus.publish(self.dbus_name, dbus_obj_pub)
 
     def update_property(self, property_name, value):
-        if property_name in self._cached_properties:
-            if self._cached_properties[property_name] == value:
-                return
+        if self._cached_properties is not None:
+            if property_name in self._cached_properties:
+                if self._cached_properties[property_name] == value:
+                    return
+            self._cached_properties[property_name] = value
+
         logger.debug("Object '{}' property update '{}.{} = {}'."
                      .format(self.dbus_obj_path, self.dbus_iface, property_name, value))
-        self._cached_properties[property_name] = value
         try:
             self.PropertiesChanged(self.dbus_iface, {property_name: value}, [])
         except KeyError as err:
