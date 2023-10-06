@@ -20,10 +20,10 @@ mapping](#supported-devices-and-value-mapping).
 
 This is a Python script, so `python` is required to run it.
 
-Once Python was installed on youir machine, you can install the script's
+Once Python was installed on your machine, you can install the script's
 requirements globally or create a dedicated `venv`.
 
-```commandline
+```shell
 # Init venv (Optional)
 $ python -m venv venev
 $ source venv/bin/activate
@@ -34,13 +34,15 @@ $ pip install -r requirements.txt
 
 Now, you are ready to run the script with the command:
 
-```commandline
+```shell
 $ python run.py
 
 or specify DBus params
 
 $ python run.py  --dbus-name com.custom.bus --dbus-obj-path /custom/path --dbus-iface com.custom.IFace
 ```
+
+For script's [remote usage](docs/remote_usage.md) please see the dedicated page.
 
 Defaults DBus params are:
 * DBus Name: `com.victron`
@@ -61,7 +63,7 @@ The `run.py` script accept following arguments:
 * `--dbus-iface DBUS_IFACE`: DBus interface (if None, the device interface will be used, if empty nothing will be used)
 * `--dev`: enable development mode, increase logged messages info
 * `--debug`: Set log level to debug
-* `--quiet`: Set log level to errorexecuted and
+* `--quiet`: Set log level to error and
 
 
 ## Develop
