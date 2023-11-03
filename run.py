@@ -20,7 +20,7 @@ FW_DESC = "Python script as {} firmware".format(FW_NAME)
 """ Group of the current script """
 FW_GROUP = "com.robypomper.smartvan.fw.victron"
 """ Version of the current script """
-FW_VERSION = "1.0.2-DEV"
+FW_VERSION = "1.0.2"
 """ Value to use as default serial port """
 DEF_SERIAL_PORT = "/dev/ttyUSB0"
 """ Value to use as default serial port speed """
