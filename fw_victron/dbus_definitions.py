@@ -70,7 +70,7 @@ DEV_DBUS_DESC_SmartSolar_MPPT = '''
     <property name="battery_voltage" type="d" access="read">
       <annotation name="org.freedesktop.DBus.Property.EmitsChangedSignal" value="true"/>
     </property>
-    <property name="panel_voltage" type="i" access="read">
+    <property name="panel_voltage" type="d" access="read">
       <annotation name="org.freedesktop.DBus.Property.EmitsChangedSignal" value="true"/>
     </property>
     
