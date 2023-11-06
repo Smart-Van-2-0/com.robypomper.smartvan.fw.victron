@@ -134,7 +134,7 @@ class VEDevice:
 
     @property
     def device_serial(self) -> "str | None":
-        """ Returns the device PID """
+        """ Returns the device serial number """
         if self.cached_serial is None:
             self.cached_serial = self._data['SER#']
 
