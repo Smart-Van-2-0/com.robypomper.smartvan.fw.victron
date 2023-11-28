@@ -15,4 +15,4 @@
 
 ## Firmware
 
-* N/A
+* Add waiting loop when the DBus name already exists on the DBus
