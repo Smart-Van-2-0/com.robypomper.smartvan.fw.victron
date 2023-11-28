@@ -15,7 +15,7 @@ class DBusObject:
 
     def __init__(self, dbus_name, pid, dbus_obj_path=None, dbus_iface=None, enable_cache=False):
         if pid not in PID:
-            raise NotImplementedError("Device with '{}' PIS not implemented."
+            raise NotImplementedError("Device with '{}' PID not implemented."
                                       .format(pid))
 
         self._cached_properties = {} if enable_cache else None
