@@ -63,9 +63,14 @@ def calculate_load_voltage(properties_cache):
 
 def calculate_load_power(properties_cache):
     try:
-        load_voltage = properties_cache['load_voltage']['value']
-        load_current = properties_cache['load_current']['value']
-        return load_voltage * load_current
+        load_voltage = properties_cache['load_voltage']['value']    # mV
+        load_current = properties_cache['load_current']['value']    # mA
+        # return load_voltage * load_current                          # mW
+        load_voltage = load_voltage / 1000                          # V
+        load_current = load_current / 1000                          # A
+        load_power = load_voltage * load_current                    # W
+        return load_power * 1000                                    # mW
+        # return load_power                                           # W
 
     except KeyError:
         return None
