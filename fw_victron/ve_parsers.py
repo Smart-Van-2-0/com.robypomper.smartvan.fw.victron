@@ -43,6 +43,10 @@ def props_parser_float(raw_value: str) -> float:
         raise ValueError("Can't cast '{}' into {}".format(raw_value, "float"))
 
 
+def props_parser_float_multi1000(raw_value: str) -> float:
+    return props_parser_float(raw_value) * 1000
+
+
 # FW -> firmware
 def props_parser_fw16(raw_value):
     if raw_value == b'\xff\xff\xff':
