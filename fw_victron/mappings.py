@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
-from .dbus_definitions import *
-from .ve_parsers import *
+from fw_victron.dbus_definitions import *
+from fw_victron.ve_parsers import *
 
 
 def dev_type_to_code(device_type) -> str:
@@ -255,7 +255,7 @@ PROPS_CODES = {
     "VPV": {"name": "panel_voltage", "desc": "Panel voltage",
             "parser": props_parser_float},
     "PPV": {"name": "panel_power", "desc": "Panel power",
-            "parser": props_parser_float},
+            "parser": props_parser_float_multi1000},
     "I": {"name": "battery_current", "desc": "Main or channel 1 battery current",
           "parser": props_parser_float},
     "I2": {"name": "battery_current_ch2", "desc": "Channel 2 battery current",

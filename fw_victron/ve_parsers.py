@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from .ve_definitions import *
+from fw_victron.ve_definitions import *
 
 
 def props_parser_none(raw_value):
@@ -41,6 +41,10 @@ def props_parser_float(raw_value: str) -> float:
         return float(raw_value)
     except Exception:
         raise ValueError("Can't cast '{}' into {}".format(raw_value, "float"))
+
+
+def props_parser_float_multi1000(raw_value: str) -> float:
+    return props_parser_float(raw_value) * 1000
 
 
 # FW -> firmware
