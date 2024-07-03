@@ -181,6 +181,7 @@ class VEDeviceSimulator(VEDevice):
 
     def __init__(self, device: str = '/dev/ttyUSB0', speed: int = 19200):
         super().__init__(device, speed, False)
+        self._is_connected = True
         self._data = {
             'FW': '',
             'SER#': '',
