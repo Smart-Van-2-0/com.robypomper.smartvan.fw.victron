@@ -1,22 +1,38 @@
 #!/usr/bin/python3
 
+
+# Calculation defaults and constants
+
 BATTERY_12V_VOLTAGE_MIN = 11.0 * 1000
 BATTERY_12V_VOLTAGE_MAX = 14.3 * 1000
 BATTERY_12V_VOLTAGE_AVG = 12.2 * 1000
 BATTERY_24V_VOLTAGE_MIN = 23.0 * 1000
 BATTERY_24V_VOLTAGE_MAX = 26.3 * 1000
 BATTERY_24V_VOLTAGE_AVG = 24.3 * 1000
+UNKNOW_PID = "Unknown"
 
+"""
+For each PID, this dictionary contains the following fixed values:
+- battery_voltage_min: the minimum battery voltage
+- battery_voltage_max: the maximum battery voltage
+- load_voltage_avg: the average load voltage
+"""
 PID_FIXED_VALUES = {
     "0xA060": {
-        "model": "SmartSolar MPPT 100|20 48V",
         "battery_voltage_min": BATTERY_12V_VOLTAGE_MIN,
         "battery_voltage_max": BATTERY_12V_VOLTAGE_MAX,
         "load_voltage_avg": BATTERY_12V_VOLTAGE_AVG,
     },
-    # others models...
+    # TODO add others models...
+    UNKNOW_PID: {
+        "battery_voltage_min": BATTERY_12V_VOLTAGE_MIN,
+        "battery_voltage_max": BATTERY_12V_VOLTAGE_MAX,
+        "load_voltage_avg": BATTERY_12V_VOLTAGE_AVG,
+    },
 }
 
+
+# Calculation methods
 
 def calculate_battery_voltage_min(properties_cache):
     try:
@@ -24,7 +40,7 @@ def calculate_battery_voltage_min(properties_cache):
         return PID_FIXED_VALUES[product_id]['battery_voltage_min']
 
     except KeyError:
-        return None
+        return PID_FIXED_VALUES[UNKNOW_PID]['battery_voltage_min']
 
 
 def calculate_battery_voltage_max(properties_cache):
@@ -33,7 +49,7 @@ def calculate_battery_voltage_max(properties_cache):
         return PID_FIXED_VALUES[product_id]['battery_voltage_max']
 
     except KeyError:
-        return None
+        return PID_FIXED_VALUES[UNKNOW_PID]['battery_voltage_max']
 
 
 def calculate_battery_voltage_percent(properties_cache):
@@ -58,7 +74,7 @@ def calculate_load_voltage(properties_cache):
         return load_voltage_avg if load_current > 0 else 0.0
 
     except KeyError:
-        return None
+        return PID_FIXED_VALUES[UNKNOW_PID]['load_voltage_avg']
 
 
 def calculate_load_power(properties_cache):
@@ -126,63 +142,3 @@ def calculate_panel_power_max(properties_cache):
 
     except KeyError:
         return None
-
-
-CALCULATED_PROPS = {
-    "battery_voltage_min": {
-        "name": "battery_voltage_min",
-        "desc": "Battery minimal voltage allowed in milliVolts",
-        "depends_on": ['product_id'],
-        "calculator": calculate_battery_voltage_min
-    },
-    "battery_voltage_max": {
-        "name": "battery_voltage_max",
-        "desc": "Battery maximal voltage allowed in milliVolts",
-        "depends_on": ['product_id'],
-        "calculator": calculate_battery_voltage_max
-    },
-    "battery_voltage_percent": {
-        "name": "battery_voltage_percent",
-        "desc": "Battery charge percentage",
-        "depends_on": ['battery_voltage', 'battery_voltage_min', 'battery_voltage_max'],
-        "calculator": calculate_battery_voltage_percent
-    },
-
-    "load_voltage": {
-        "name": "load_voltage",
-        "desc": "Load voltage in milliVolts",
-        "depends_on": ['product_id', 'load_current'],
-        "calculator": calculate_load_voltage
-    },
-    "load_power": {
-        "name": "load_power",
-        "desc": "Load power consumption in milliWatts",
-        "depends_on": ['load_current', 'load_voltage'],
-        "calculator": calculate_load_power
-    },
-    "load_power_percent": {
-        "name": "load_power_percent",
-        "desc": "Load power consumption percentage",
-        "depends_on": ['load_power', 'load_power_max'],
-        "calculator": calculate_load_power_percent
-    },
-    "load_power_max": {
-        "name": "load_power_max",
-        "desc": "Maximum load power consumption in milliWatts",
-        "depends_on": ['load_power'],
-        "calculator": calculate_load_power_max
-    },
-
-    "panel_power_percent": {
-        "name": "panel_power_percent",
-        "desc": "Panel power generation percent",
-        "depends_on": ['panel_power', 'panel_power_max'],
-        "calculator": calculate_panel_power_percent
-    },
-    "panel_power_max": {
-        "name": "panel_power_max",
-        "desc": "Maximum power generation by solar panels",
-        "depends_on": ['panel_power'],
-        "calculator": calculate_panel_power_max
-    },
-}

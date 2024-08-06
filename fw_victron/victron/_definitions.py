@@ -1,9 +1,9 @@
 #!/usr/bin/python3
 
-# Default device type for unknown devices
-DEV_TYPE_UNKNOWN = "Unknown Device Type"
 
 # List of supported devices' types
+# Strings used as default value to populate the PID dict
+
 DEV_TYPE_BMV = "BMV"
 DEV_TYPE_BlueSolar_MPPT = "BlueSolar MPPT"
 DEV_TYPE_BlueSolar_MPPT_VECan = "BlueSolar MPPT VE.Can"
@@ -13,8 +13,29 @@ DEV_TYPE_Phoenix_Inverter = "Phoenix Inverter"
 DEV_TYPE_Phoenix_Smart_IP43_Charger = "Phoenix Smart IP43 Charger"
 DEV_TYPE_SmartShunt = "SmartShunt"
 
-# WARN and AR has same codes, but different meanings
-# WARN is just a warning while AR (alarm reason) is the reason why the inverter went into security shutdown
+# Default device type for unknown devices
+DEV_TYPE_UNKNOWN = "Unknown Device Type"
+
+
+# List of supported dbus ifaces
+# Strings used as default value to populate the PID dict
+
+DEV_IFACE_BMV = "com.victron.BMV"
+DEV_IFACE_BlueSolar_MPPT = "com.victron.BlueSolarMPPT"
+DEV_IFACE_BlueSolar_MPPT_VECan = "com.victron.BlueSolarMPPTVECan"
+DEV_IFACE_SmartSolar_MPPT = "com.victron.SmartSolarMPPT"
+DEV_IFACE_SmartSolar_MPPT_VECan = "com.victron.SmartSolarMPPTVECan"
+DEV_IFACE_Phoenix_Inverter = "com.victron.PhoenixInverter"
+DEV_IFACE_Phoenix_Smart_IP43_Charger = "com.victron.PhoenixSmartIP43Charger"
+DEV_IFACE_SmartShunt = "com.victron.SmartShunt"
+
+
+# Definitions for supported data types
+
+"""
+WARN and AR has same codes, but different meanings
+WARN is just a warning while AR (alarm reason) is the reason why the inverter went into security shutdown
+"""
 WARN_AR = {
     1: "Low Voltage",
     2: "High Voltage",

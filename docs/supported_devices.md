@@ -3,7 +3,7 @@
 Once the device is initialized, the script reads its data. Each data frame
 contains the PID property, which is the **product ID of the connected device**.
 The **device information is then retrieved from the PID mapping** in
-the [mappings.py](/fw_victron/mappings.py) file, this file is based on
+the [mappings.py](/fw_victron/victron/mappings.py) file, this file is based on
 the [Devices by PID](#devices-by-pid) tables.<br/>
 Then, those info are used to initialize the DBus object with the correspondent
 DBus iface and description. Both, the iface and the object description are
@@ -13,17 +13,17 @@ TODO: rearrange source files to new firmware structure
 
 * `model`: human-readable name of the exact model
 * `type`: devices code to group similar devices
-  from [_ve_definitions.py](/fw_victron/ve_definitions.py) as `DEV_TYPE_*`
+  from [_ve_definitions.py](/fw_victron/victron/_definitions.py) as `DEV_TYPE_*`
 * `dbus_iface`: a string defining the DBus iface<br/>
-  from [dbus_definitions.py](/fw_victron/dbus_definitions.py) as `DEV_IFACE_*`
+  from [dbus_definitions.py](/fw_victron/victron/_dbus_descs.py) as `DEV_IFACE_*`
 * `dbus_desc`: a string defining the DBus object's description<br/>
-  from [dbus_definitions.py](/fw_victron/dbus_definitions.py) as `DEV_DBUS_DESC_*`.
+  from [dbus_definitions.py](/fw_victron/victron/_dbus_descs.py) as `DEV_DBUS_DESC_*`.
 
 ## Device types
 
 Here, you can find the list of all devices types available. Any product ID
 from [Devices by PID](#devices-by-pid) section is mapped into a device type
-using the `PID` table from the [mappings.py](/fw_victron/mappings.py) file.
+using the `PID` table from the [mappings.py](/fw_victron/victron/mappings.py) file.
 More details on DBus definitions and their properties can be found on
 the [Values Mapping](values_mapping.md#properties-by-dbus-object-description)
 page.
