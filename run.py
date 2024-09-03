@@ -15,7 +15,7 @@ FW_SETTINGS = {
     # Group of the current script (default: None)
     Settings.FW_GROUP: "com.robypomper.smartvan.fw.victron",
     # Version of the current script (default: None)
-    Settings.FW_VERSION: "1.0.3",
+    Settings.FW_VERSION: "1.0.4-DEV",
     # Description of the current script (default: None)
     Settings.FW_DESC: "Python script as FW Victron",
     # Name of the current script (default: None)
