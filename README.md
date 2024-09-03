@@ -7,7 +7,7 @@ the [Smart Van Project](https://smartvan.johnosproject.org/).
 
 **FW Name:** FW Victron<br />
 **FW Group:** com.robypomper.smartvan.fw.victron<br />
-**FW Version:** 1.0.3-DEV
+**FW Version:** 1.0.3
 
 [README](README.md) | [CHANGELOG](CHANGELOG.md) | [TODOs](TODOs.md) | [LICENCE](LICENCE.md)
 
