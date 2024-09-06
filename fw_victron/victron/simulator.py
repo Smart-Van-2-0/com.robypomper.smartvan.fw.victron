@@ -1,14 +1,15 @@
 #!/usr/bin/python3
 
+import random
+
 from fw_victron.victron.device import Device
-from fw_victron.victron.mappings import *
-from fw_victron.commons import regenerateValue
+from fw_victron.base.commons import regenerateValueMaxMin
 
 
 class DeviceSimulator(Device):
 
-    def __init__(self, device: str = '/dev/ttyUSB0', speed: int = 19200):
-        super().__init__(device, speed, False)
+    def __init__(self, device, speed):
+        super().__init__(device, speed, auto_refresh=False)
         self._data = {
             'FW': '',
             'SER#': '',

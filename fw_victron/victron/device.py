@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 from fw_victron.victron.mappings import *
-from fw_victron.device_serial import DeviceSerial
+from fw_victron.base.device_serial import DeviceSerial
 
 
 class Device(DeviceSerial):
@@ -9,8 +9,12 @@ class Device(DeviceSerial):
     Device class for Victron devices communicating via Serial port
     """
 
+    DELIMITER = "PID"
+    FIELD_PID = "PID"
+    FIELD_TYPE = "--"
+
     def __init__(self, device: str = '/dev/ttyUSB0', speed: int = 19200, auto_refresh=True):
-        super().__init__(device, speed, "PID", auto_refresh)
+        super().__init__(device, speed, self.DELIMITER, self.FIELD_PID, self.FIELD_TYPE, auto_refresh)
 
         self.cached_pid = None
         self.cached_model = None
@@ -32,14 +36,6 @@ class Device(DeviceSerial):
             self.cached_serial = self._data['SER#']
 
         return self.cached_serial
-
-    @property
-    def device_pid(self) -> "str | None":
-        """ Returns the device PID """
-        if self.cached_pid is None:
-            self.cached_pid = self._data['PID']
-
-        return self.cached_pid
 
     @property
     def device_model(self) -> "str | None":

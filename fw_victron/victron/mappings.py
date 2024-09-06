@@ -1,7 +1,5 @@
 #!/usr/bin/python3
 
-from fw_victron.commons import *
-from fw_victron.victron._definitions import *
 from fw_victron.victron._dbus_descs import *
 from fw_victron.victron._parsers import *
 from fw_victron.victron._calculated import *
