@@ -1,8 +1,10 @@
 #!/usr/bin/python3
 
-from fw_victron.dbus_definitions import *
-from fw_victron.ve_parsers import *
-
+from fw_victron.commons import *
+from fw_victron.victron._definitions import *
+from fw_victron.victron._dbus_descs import *
+from fw_victron.victron._parsers import *
+from fw_victron.victron._calculated import *
 
 def dev_type_to_code(device_type) -> str:
     """ make given string lower case and replace whitespaces with '_' """
@@ -367,4 +369,63 @@ PROPS_CODES = {
                 "parser": props_parser_float},
     "DC_IN_P": {"name": "dc_input_power", "desc": "DC input power",
                 "parser": props_parser_float},
+}
+
+CALC_PROPS_CODES = {
+    "battery_voltage_min": {
+        "name": "battery_voltage_min",
+        "desc": "Battery minimal voltage allowed in milliVolts",
+        "depends_on": ['product_id'],
+        "calculator": calculate_battery_voltage_min
+    },
+    "battery_voltage_max": {
+        "name": "battery_voltage_max",
+        "desc": "Battery maximal voltage allowed in milliVolts",
+        "depends_on": ['product_id'],
+        "calculator": calculate_battery_voltage_max
+    },
+    "battery_voltage_percent": {
+        "name": "battery_voltage_percent",
+        "desc": "Battery charge percentage",
+        "depends_on": ['battery_voltage', 'battery_voltage_min', 'battery_voltage_max'],
+        "calculator": calculate_battery_voltage_percent
+    },
+
+    "load_voltage": {
+        "name": "load_voltage",
+        "desc": "Load voltage in milliVolts",
+        "depends_on": ['product_id', 'load_current'],
+        "calculator": calculate_load_voltage
+    },
+    "load_power": {
+        "name": "load_power",
+        "desc": "Load power consumption in milliWatts",
+        "depends_on": ['load_current', 'load_voltage'],
+        "calculator": calculate_load_power
+    },
+    "load_power_percent": {
+        "name": "load_power_percent",
+        "desc": "Load power consumption percentage",
+        "depends_on": ['load_power', 'load_power_max'],
+        "calculator": calculate_load_power_percent
+    },
+    "load_power_max": {
+        "name": "load_power_max",
+        "desc": "Maximum load power consumption in milliWatts",
+        "depends_on": ['load_power'],
+        "calculator": calculate_load_power_max
+    },
+
+    "panel_power_percent": {
+        "name": "panel_power_percent",
+        "desc": "Panel power generation percent",
+        "depends_on": ['panel_power', 'panel_power_max'],
+        "calculator": calculate_panel_power_percent
+    },
+    "panel_power_max": {
+        "name": "panel_power_max",
+        "desc": "Maximum power generation by solar panels",
+        "depends_on": ['panel_power'],
+        "calculator": calculate_panel_power_max
+    },
 }

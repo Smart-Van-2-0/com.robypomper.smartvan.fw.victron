@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from fw_victron.ve_definitions import *
+from fw_victron.victron._definitions import *
 
 
 def props_parser_none(raw_value):
