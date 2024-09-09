@@ -3,6 +3,11 @@
 [README](README.md) | [CHANGELOG](CHANGELOG.md) | [TODOs](TODOs.md) | [LICENCE](LICENCE.md)
 
 
+## Version 1.0.3
+
+* Updated base firmware: repoSync2
+* Fixed HALT signal handling
+
 ## Version 1.0.2
 
 * Added property cache on `run.py`

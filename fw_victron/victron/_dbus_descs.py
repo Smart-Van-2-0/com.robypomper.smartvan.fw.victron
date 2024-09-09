@@ -1,17 +1,7 @@
 #!/usr/bin/python3
 
-# List of supported devices' types
-DEV_IFACE_BMV = "com.victron.BMV"
-DEV_IFACE_BlueSolar_MPPT = "com.victron.BlueSolarMPPT"
-DEV_IFACE_BlueSolar_MPPT_VECan = "com.victron.BlueSolarMPPTVECan"
-DEV_IFACE_SmartSolar_MPPT = "com.victron.SmartSolarMPPT"
-DEV_IFACE_SmartSolar_MPPT_VECan = "com.victron.SmartSolarMPPTVECan"
-DEV_IFACE_Phoenix_Inverter = "com.victron.PhoenixInverter"
-DEV_IFACE_Phoenix_Smart_IP43_Charger = "com.victron.PhoenixSmartIP43Charger"
-DEV_IFACE_SmartShunt = "com.victron.SmartShunt"
-
-# List of all DBus objects' definitions
-# Defined using the specs at https://www.victronenergy.com/upload/documents/VE.Direct-Protocol-3.33.pdf
+# List of supported DBus objects' definitions
+# Strings used as default value to populate the PID dict
 
 DEV_DBUS_DESC_SmartSolar_MPPT = '''
 <node>

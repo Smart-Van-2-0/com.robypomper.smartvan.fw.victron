@@ -7,7 +7,7 @@ the [Smart Van Project](https://smartvan.johnosproject.org/).
 
 **FW Name:** FW Victron<br />
 **FW Group:** com.robypomper.smartvan.fw.victron<br />
-**FW Version:** 1.0.2
+**FW Version:** 1.0.3
 
 [README](README.md) | [CHANGELOG](CHANGELOG.md) | [TODOs](TODOs.md) | [LICENCE](LICENCE.md)
 
@@ -81,8 +81,7 @@ The `run.py` script accept following arguments:
 * `--simulate`: Simulate a VEDevice with id `0xA060` (default: `False`)
 * `--dbus-name DBUS_NAME`: DBus name to connect to (Default: `com.victron`)
 * `--dbus-obj-path DBUS_OBJ_PATH`: DBus object path to use for object
-  publication
-  (Default: the `device_type_code` string)
+  publication (Default: the `device_type_code` string)
 * `--dbus-iface DBUS_IFACE`: DBus object's interface (Default: current device's
   `dbus_iface`)
 * `--dev`: enable development mode, increase log messages
@@ -95,4 +94,36 @@ The main goal for this script is to link the VE.Direct protocol to the DBus.
 So, in addition to the main script, all other files are related to the device
 or to the DBus protocols.
 
-TODO: rearrange source files to new firmware structure
+Module's files can be grouped in 2 categories:
+
+**Definitions:**
+
+* [victron/mappings.py](/fw_victron/victron/mappings.py):
+  definition of `PID`, `PROPS_CODES` and `CALC_PROPS_CODES` tables
+* [victron/_definitions.py](/fw_victron/victron/_definitions.py):
+  definitions of supported devices, DUbus ifaces and custom properties types
+* [victron/_parsers.py](/fw_victron/victron/_parsers.py):
+  custom properties parsers
+* [victron/_calculated.py](/fw_victron/victron/_calculated.py):
+  custom properties calculators and data generator methods for simulator
+* [victron/_dbus_descs.py](/fw_victron/victron/_dbus_descs.py):
+  definition of DBus iface's descriptors
+
+**Operations:**
+
+* [run.py](run.py):
+  main firmware script
+* [victron/device.py](/fw_victron/victron/device.py):
+  class that represent the device
+* [victron/simulator.py](/fw_victron/victron/simulator.py):
+  class that represent the simulated device
+* [dbus/obj.py](/fw_victron/dbus/obj.py):
+  class that represent aDBus object to publish
+* [dbus/daemon.py](/fw_victron/dbus/daemon.py):
+  methods to handle the DBus daemon
+* [base/commons.py](/fw_victron/base/commons.py):
+  commons properties parsers and simulator methods
+* [base/device.py](/fw_victron/base/device.py):
+  base class for devices
+* [base/device_serial.py](/fw_victron/base/device_serial.py):
+  base implementation for serial devices

@@ -4,7 +4,7 @@ The properties exposed on the DBus vary depending on
 the [type of device](supported_devices.md). A description of the
 DBus object to be exposed is defined for each type of device. The DBus object
 definitions are specified in the
-[dbus_definitions.py](/fw_victron/dbus_definitions.py) file.
+[dbus_definitions.py](/fw_victron/victron/_dbus_descs.py) file.
 
 During the `main_loop`, this script refresh the device's data and parse any
 property found, if the property value is update the script sends the property
@@ -22,7 +22,7 @@ of an elaboration.
 ### Direct
 
 Direct properties are defined into the `PROPS_CODES` table into
-the [mappings.py](/fw_victron/mappings.py) file.
+the [mappings.py](/fw_victron/victron/mappings.py) file.
 
 For each property are defined following fields:
 
@@ -97,11 +97,11 @@ For each property are defined following fields:
 | `DC_IN_I`   | `dc_input_current`                  | DC input current                                                           | `props_parser_float`                   |
 | `DC_IN_P`   | `dc_input_power`                    | DC input power                                                             | `props_parser_float`                   |
 
-Parser methods are defined into [ve_parsers.py](/fw_victron/ve_parsers.py) file.
+Parser methods are defined into [ve_parsers.py](/fw_victron/victron/_parsers.py) file.
 Depending on which DBus property's they are mapped for, they can return
 different value's types.<br/>
 Custom types are defined into
-the [ve_definitions.py](/fw_victron/ve_definitions.py) file.
+the [ve_definitions.py](/fw_victron/victron/_definitions.py) file.
 
 ### Calculated
 
